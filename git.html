@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Advanced Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0366d6;
+            box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(45deg, #0366d6, #0057b8);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 5px 15px rgba(3, 102, 214, 0.3);
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #586069;
+            font-size: 14px;
+        }
+
+        .filter-select, .filter-input {
+            padding: 10px;
+            border: 1px solid #d1d5da;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: #0366d6;
+        }
+
+        .advanced-toggle {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .advanced-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .advanced-filters {
+            display: none;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .advanced-filters.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 0;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: #586069;
+        }
+
+        .sort-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sort-select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .results-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .repo-card {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .repo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #0366d6, #28a745);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .repo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-color: #0366d6;
+        }
+
+        .repo-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .repo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .repo-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0366d6;
+            text-decoration: none;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .repo-name:hover {
+            text-decoration: underline;
+        }
+
+        .repo-owner {
+            color: #586069;
+            font-size: 14px;
+        }
+
+        .repo-stats {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #586069;
+            font-size: 14px;
+        }
+
+        .stat-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .repo-description {
+            color: #586069;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .repo-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .repo-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .topic-tag {
+            background: #f1f8ff;
+            color: #0366d6;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .language-tag {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #586069;
+            font-size: 14px;
+        }
+
+        .language-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #586069;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0366d6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ffeef0;
+            color: #d73a49;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #d73a49;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .page-btn {
+            padding: 10px 15px;
+            border: 1px solid #d1d5da;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover {
+            background: #f6f8fa;
+            border-color: #0366d6;
+        }
+
+        .page-btn.active {
+            background: #0366d6;
+            color: white;
+            border-color: #0366d6;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .repo-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .repo-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 GitHub Advanced Search</h1>
+            <p>Discover repositories with powerful filtering and sorting capabilities</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search repositories (e.g., 'react', 'machine learning', 'typescript')" />
+                <button class="search-btn" onclick="searchRepositories()">Search</button>
+            </div>
+
+            <button class="advanced-toggle" onclick="toggleAdvancedFilters()">
+                🔧 Advanced Filters
+            </button>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Language</label>
+                    <select class="filter-select" id="languageFilter">
+                        <option value="">All Languages</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="c++">C++</option>
+                        <option value="c#">C#</option>
+                        <option value="php">PHP</option>
+                        <option value="ruby">Ruby</option>
+                        <option value="go">Go</option>
+                        <option value="rust">Rust</option>
+                        <option value="swift">Swift</option>
+                        <option value="kotlin">Kotlin</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Sort By</label>
+                    <select class="filter-select" id="sortFilter">
+                        <option value="stars">⭐ Stars</option>
+                        <option value="updated">🔄 Recently Updated</option>
+                        <option value="forks">🍴 Forks</option>
+                        <option value="created">📅 Created Date</option>
+                        <option value="pushed">⚡ Last Push</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Order</label>
+                    <select class="filter-select" id="orderFilter">
+                        <option value="desc">Descending</option>
+                        <option value="asc">Ascending</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Min Stars</label>
+                    <input type="number" class="filter-input" id="minStarsFilter" placeholder="e.g., 100" min="0" />
+                </div>
+            </div>
+
+            <div class="advanced-filters" id="advancedFilters">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Created After</label>
+                        <input type="date" class="filter-input" id="createdAfterFilter" />
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Updated After</label>
+                        <input type="date" class="filter-input" id="updatedAfterFilter" />
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Max Size (KB)</label>
+                        <input type="number" class="filter-input" id="maxSizeFilter" placeholder="e.g., 10000" min="0" />
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>License</label>
+                        <select class="filter-select" id="licenseFilter">
+                            <option value="">Any License</option>
+                            <option value="mit">MIT</option>
+                            <option value="apache-2.0">Apache 2.0</option>
+                            <option value="gpl-3.0">GPL 3.0</option>
+                            <option value="bsd-3-clause">BSD 3-Clause</option>
+                            <option value="unlicense">Unlicense</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Has Issues</label>
+                        <select class="filter-select" id="hasIssuesFilter">
+                            <option value="">Any</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>Has Wiki</label>
+                        <select class="filter-select" id="hasWikiFilter">
+                            <option value="">Any</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-container">
+            <div class="stats" id="statsContainer" style="display: none;">
+                <div class="results-count" id="resultsCount"></div>
+                <div class="sort-container">
+                    <span>Items per page:</span>
+                    <select class="sort-select" id="perPageSelect">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="resultsContainer">
+                <div style="text-align: center; padding: 60px 20px; color: #586069;">
+                    <h3>🚀 Ready to explore GitHub?</h3>
+                    <p>Enter a search term above to discover amazing repositories!</p>
+                </div>
+            </div>
+
+            <div class="pagination" id="paginationContainer" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        class GitHubSearchEngine {
+            constructor() {
+                this.currentPage = 1;
+                this.perPage = 25;
+                this.totalCount = 0;
+                this.isLoading = false;
+                this.cache = new Map();
+                this.rateLimit = {
+                    remaining: 60,
+                    reset: Date.now() + 3600000
+                };
+                
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.searchRepositories();
+                    }
+                });
+
+                document.getElementById('perPageSelect').addEventListener('change', (e) => {
+                    this.perPage = parseInt(e.target.value);
+                    this.currentPage = 1;
+                    this.searchRepositories();
+                });
+
+                // Auto-search on filter changes
+                const filters = ['languageFilter', 'sortFilter', 'orderFilter', 'minStarsFilter', 
+                               'createdAfterFilter', 'updatedAfterFilter', 'maxSizeFilter', 
+                               'licenseFilter', 'hasIssuesFilter', 'hasWikiFilter'];
+                
+                filters.forEach(filterId => {
+                    const element = document.getElementById(filterId);
+                    if (element) {
+                        element.addEventListener('change', () => {
+                            if (document.getElementById('searchInput').value.trim()) {
+                                this.currentPage = 1;
+                                this.searchRepositories();
+                            }
+                        });
+                    }
+                });
+            }
+
+            buildSearchQuery() {
+                const searchTerm = document.getElementById('searchInput').value.trim();
+                if (!searchTerm) return '';
+
+                let query = searchTerm;
+                
+                const language = document.getElementById('languageFilter').value;
+                if (language) query += ` language:${language}`;
+                
+                const minStars = document.getElementById('minStarsFilter').value;
+                if (minStars) query += ` stars:>=${minStars}`;
+                
+                const createdAfter = document.getElementById('createdAfterFilter').value;
+                if (createdAfter) query += ` created:>=${createdAfter}`;
+                
+                const updatedAfter = document.getElementById('updatedAfterFilter').value;
+                if (updatedAfter) query += ` pushed:>=${updatedAfter}`;
+                
+                const maxSize = document.getElementById('maxSizeFilter').value;
+                if (maxSize) query += ` size:<=${maxSize}`;
+                
+                const license = document.getElementById('licenseFilter').value;
+                if (license) query += ` license:${license}`;
+                
+                const hasIssues = document.getElementById('hasIssuesFilter').value;
+                if (hasIssues) query += ` has:issues`;
+                
+                const hasWiki = document.getElementById('hasWikiFilter').value;
+                if (hasWiki) query += ` has:wiki`;
+
+                return query;
+            }
+
+            getCacheKey() {
+                const query = this.buildSearchQuery();
+                const sort = document.getElementById('sortFilter').value;
+                const order = document.getElementById('orderFilter').value;
+                return `${query}-${sort}-${order}-${this.currentPage}-${this.perPage}`;
+            }
+
+            async searchRepositories() {
+                if (this.isLoading) return;
+                
+                const query = this.buildSearchQuery();
+                if (!query) {
+                    this.showError('Please enter a search term');
+                    return;
+                }
+
+                this.isLoading = true;
+                this.showLoading();
+
+                try {
+                    const cacheKey = this.getCacheKey();
+                    let data;
+
+                    if (this.cache.has(cacheKey)) {
+                        data = this.cache.get(cacheKey);
+                    } else {
+                        const sort = document.getElementById('sortFilter').value;
+                        const order = document.getElementById('orderFilter').value;
+                        
+                        const url = new URL('https://api.github.com/search/repositories');
+                        url.searchParams.set('q', query);
+                        url.searchParams.set('sort', sort);
+                        url.searchParams.set('order', order);
+                        url.searchParams.set('per_page', this.perPage);
+                        url.searchParams.set('page', this.currentPage);
+
+                        const response = await fetch(url);
+                        
+                        if (!response.ok) {
+                            if (response.status === 403) {
+                                throw new Error('Rate limit exceeded. Please try again later.');
+                            }
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+
+                        data = await response.json();
+                        
+                        // Update rate limit info
+                        this.rateLimit.remaining = parseInt(response.headers.get('X-RateLimit-Remaining') || '0');
+                        this.rateLimit.reset = parseInt(response.headers.get('X-RateLimit-Reset') || '0') * 1000;
+                        
+                        // Cache the results
+                        this.cache.set(cacheKey, data);
+                        
+                        // Clean old cache entries
+                        if (this.cache.size > 50) {
+                            const firstKey = this.cache.keys().next().value;
+                            this.cache.delete(firstKey);
+                        }
+                    }
+
+                    this.totalCount = data.total_count;
+                    this.displayResults(data.items);
+                    this.updateStats();
+                    this.updatePagination();
+
+                } catch (error) {
+                    this.showError(error.message);
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+
+            showLoading() {
+                document.getElementById('resultsContainer').innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Searching repositories...</p>
+                    </div>
+                `;
+                document.getElementById('statsContainer').style.display = 'none';
+                document.getElementById('paginationContainer').style.display = 'none';
+            }
+
+            showError(message) {
+                document.getElementById('resultsContainer').innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${message}
+                    </div>
+                `;
+                document.getElementById('statsContainer').style.display = 'none';
+                document.getElementById('paginationContainer').style.display = 'none';
+            }
+
+            displayResults(repositories) {
+                if (repositories.length === 0) {
+                    document.getElementById('resultsContainer').innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #586069;">
+                            <h3>No repositories found</h3>
+                            <p>Try adjusting your search terms or filters</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const html = repositories.map(repo => this.createRepoCard(repo)).join('');
+                document.getElementById('resultsContainer').innerHTML = html;
+            }
+
+            createRepoCard(repo) {
+                const formatNumber = (num) => num.toLocaleString();
+                const formatDate = (dateString) => new Date(dateString).toLocaleDateString();
+                const truncateText = (text, maxLength) => 
+                    text && text.length > maxLength ? text.substring(0, maxLength) + '...' : text || '';
+
+                const languageColor = this.getLanguageColor(repo.language);
+                const topics = repo.topics ? repo.topics.slice(0, 5) : [];
+
+                return `
+                    <div class="repo-card">
+                        <div class="repo-header">
+                            <div>
+                                <a href="${repo.html_url}" target="_blank" class="repo-name">${repo.name}</a>
+                                <div class="repo-owner">by ${repo.owner.login}</div>
+                            </div>
+                            <div class="repo-stats">
+                                <div class="stat-item">
+                                    <svg class="stat-icon" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25zm0 2.445L6.615 5.5a.75.75 0 01-.564.41l-3.097.45 2.24 2.184a.75.75 0 01.216.664l-.528 3.084 2.769-1.456a.75.75 0 01.698 0l2.77 1.456-.53-3.084a.75.75 0 01.216-.664l2.24-2.183-3.096-.45a.75.75 0 01-.564-.41L8 2.694v.001z"/>
+                                    </svg>
+                                    ${formatNumber(repo.stargazers_count)}
+                                </div>
+                                <div class="stat-item">
+                                    <svg class="stat-icon" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878z"/>
+                                    </svg>
+                                    ${formatNumber(repo.forks_count)}
+                                </div>
+                                <div class="stat-item">
+                                    <svg class="stat-icon" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                                        <path d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/>
+                                    </svg>
+                                    ${formatNumber(repo.open_issues_count)}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="repo-description">
+                            ${truncateText(repo.description, 150)}
+                        </div>
+
+                        <div class="repo-meta">
+                            <div class="repo-topics">
+                                ${topics.map(topic => `<span class="topic-tag">${topic}</span>`).join('')}
+                            </div>
+                            
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                ${repo.language ? `
+                                    <div class="language-tag">
+                                        <div class="language-color" style="background-color: ${languageColor}"></div>
+                                        ${repo.language}
+                                    </div>
+                                ` : ''}
+                                <div style="color: #586069; font-size: 13px;">
+                                    Updated ${formatDate(repo.updated_at)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            getLanguageColor(language) {
+                const colors = {
+                    'JavaScript': '#f1e05a',
+                    'TypeScript': '#2b7489',
+                    'Python': '#3572A5',
+                    'Java': '#b07219',
+                    'C++': '#f34b7d',
+                    'C#': '#239120',
+                    'PHP': '#4F5D95',
+                    'Ruby': '#701516',
+                    'Go': '#00ADD8',
+                    'Rust': '#dea584',
+                    'Swift': '#ffac45',
+                    'Kotlin': '#F18E33',
+                    'HTML': '#e34c26',
+                    'CSS': '#1572B6',
+                    'Shell': '#89e051',
+                    'C': '#555555',
+                    'Objective-C': '#438eff',
+                    'R': '#198CE7',
+                    'Scala': '#c22d40',
+                    'Dart': '#00B4AB'
+                };
+                return colors[language] || '#586069';
+            }
+
+            updateStats() {
+                const start = (this.currentPage - 1) * this.perPage + 1;
+                const end = Math.min(this.currentPage * this.perPage, this.totalCount);
+                
+                document.getElementById('resultsCount').textContent = 
+                    `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${this.totalCount.toLocaleString()} results`;
+                
+                document.getElementById('statsContainer').style.display = 'flex';
+            }
+
+            updatePagination() {
+                const totalPages = Math.ceil(this.totalCount / this.perPage);
+                const maxPages = Math.min(totalPages, 100); // GitHub API limit
+                
+                if (totalPages <= 1) {
+                    document.getElementById('paginationContainer').style.display = 'none';
+                    return;
+                }
+
+                let paginationHTML = '';
+                
+                // Previous button
+                paginationHTML += `
+                    <button class="page-btn" ${this.currentPage === 1 ? 'disabled' : ''} 
+                            onclick="searchEngine.goToPage(${this.currentPage - 1})">
+                        « Previous
+                    </button>
+                `;
+                
+                // Page numbers with smart truncation
+                const startPage = Math.max(1, this.currentPage - 2);
+                const endPage = Math.min(maxPages, this.currentPage + 2);
+                
+                if (startPage > 1) {
+                    paginationHTML += `<button class="page-btn" onclick="searchEngine.goToPage(1)">1</button>`;
+                    if (startPage > 2) {
+                        paginationHTML += `<span style="padding: 10px;">...</span>`;
+                    }
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    paginationHTML += `
+                        <button class="page-btn ${i === this.currentPage ? 'active' : ''}" 
+                                onclick="searchEngine.goToPage(${i})">
+                            ${i}
+                        </button>
+                    `;
+                }
+                
+                if (endPage < maxPages) {
+                    if (endPage < maxPages - 1) {
+                        paginationHTML += `<span style="padding: 10px;">...</span>`;
+                    }
+                    paginationHTML += `<button class="page-btn" onclick="searchEngine.goToPage(${maxPages})">${maxPages}</button>`;
+                }
+                
+                // Next button
+                paginationHTML += `
+                    <button class="page-btn" ${this.currentPage === maxPages ? 'disabled' : ''} 
+                            onclick="searchEngine.goToPage(${this.currentPage + 1})">
+                        Next »
+                    </button>
+                `;
+                
+                document.getElementById('paginationContainer').innerHTML = paginationHTML;
+                document.getElementById('paginationContainer').style.display = 'flex';
+            }
+
+            goToPage(page) {
+                this.currentPage = page;
+                this.searchRepositories();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // Performance optimization: debounce search
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            // Export results functionality
+            exportResults(format = 'json') {
+                const cacheKey = this.getCacheKey();
+                if (!this.cache.has(cacheKey)) {
+                    alert('No results to export. Please search first.');
+                    return;
+                }
+
+                const data = this.cache.get(cacheKey);
+                const exportData = data.items.map(repo => ({
+                    name: repo.name,
+                    owner: repo.owner.login,
+                    description: repo.description,
+                    stars: repo.stargazers_count,
+                    forks: repo.forks_count,
+                    language: repo.language,
+                    created_at: repo.created_at,
+                    updated_at: repo.updated_at,
+                    url: repo.html_url,
+                    topics: repo.topics
+                }));
+
+                let content, mimeType, filename;
+
+                if (format === 'json') {
+                    content = JSON.stringify(exportData, null, 2);
+                    mimeType = 'application/json';
+                    filename = 'github_search_results.json';
+                } else if (format === 'csv') {
+                    const headers = ['Name', 'Owner', 'Description', 'Stars', 'Forks', 'Language', 'Created', 'Updated', 'URL', 'Topics'];
+                    const csvContent = [
+                        headers.join(','),
+                        ...exportData.map(repo => [
+                            `"${repo.name}"`,
+                            `"${repo.owner}"`,
+                            `"${(repo.description || '').replace(/"/g, '""')}"`,
+                            repo.stars,
+                            repo.forks,
+                            `"${repo.language || ''}"`,
+                            `"${repo.created_at}"`,
+                            `"${repo.updated_at}"`,
+                            `"${repo.url}"`,
+                            `"${(repo.topics || []).join(', ')}"`
+                        ].join(','))
+                    ].join('\n');
+                    content = csvContent;
+                    mimeType = 'text/csv';
+                    filename = 'github_search_results.csv';
+                }
+
+                this.downloadFile(content, filename, mimeType);
+            }
+
+            downloadFile(content, filename, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // Keyboard shortcuts
+            initKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key) {
+                            case 'k':
+                                e.preventDefault();
+                                document.getElementById('searchInput').focus();
+                                break;
+                            case 'Enter':
+                                if (document.activeElement === document.getElementById('searchInput')) {
+                                    e.preventDefault();
+                                    this.searchRepositories();
+                                }
+                                break;
+                        }
+                    }
+                    
+                    // Arrow key navigation for pagination
+                    if (e.key === 'ArrowLeft' && e.altKey && this.currentPage > 1) {
+                        e.preventDefault();
+                        this.goToPage(this.currentPage - 1);
+                    } else if (e.key === 'ArrowRight' && e.altKey) {
+                        e.preventDefault();
+                        const totalPages = Math.ceil(this.totalCount / this.perPage);
+                        if (this.currentPage < totalPages) {
+                            this.goToPage(this.currentPage + 1);
+                        }
+                    }
+                });
+            }
+
+            // Rate limit monitoring
+            checkRateLimit() {
+                if (this.rateLimit.remaining < 5 && Date.now() < this.rateLimit.reset) {
+                    const resetTime = new Date(this.rateLimit.reset).toLocaleTimeString();
+                    this.showError(`Rate limit nearly exceeded. Resets at ${resetTime}. Consider using a GitHub token for higher limits.`);
+                    return false;
+                }
+                return true;
+            }
+
+            // Save and load search preferences
+            savePreferences() {
+                const preferences = {
+                    language: document.getElementById('languageFilter').value,
+                    sort: document.getElementById('sortFilter').value,
+                    order: document.getElementById('orderFilter').value,
+                    minStars: document.getElementById('minStarsFilter').value,
+                    license: document.getElementById('licenseFilter').value,
+                    perPage: this.perPage
+                };
+                try {
+                    localStorage.setItem('github_search_preferences', JSON.stringify(preferences));
+                } catch (e) {
+                    // Handle localStorage not available
+                    console.log('Could not save preferences');
+                }
+            }
+
+            loadPreferences() {
+                try {
+                    const saved = localStorage.getItem('github_search_preferences');
+                    if (saved) {
+                        const preferences = JSON.parse(saved);
+                        Object.entries(preferences).forEach(([key, value]) => {
+                            const element = document.getElementById(key + 'Filter') || 
+                                           document.getElementById('perPageSelect');
+                            if (element && value) {
+                                element.value = value;
+                            }
+                        });
+                        if (preferences.perPage) {
+                            this.perPage = preferences.perPage;
+                        }
+                    }
+                } catch (e) {
+                    // Handle localStorage not available or invalid data
+                    console.log('Could not load preferences');
+                }
+            }
+
+            init() {
+                this.loadPreferences();
+                this.initKeyboardShortcuts();
+                
+                // Auto-save preferences on changes
+                const filterElements = document.querySelectorAll('.filter-select, .filter-input, #perPageSelect');
+                filterElements.forEach(element => {
+                    element.addEventListener('change', () => {
+                        this.savePreferences();
+                    });
+                });
+                
+                // Add export buttons
+                this.addExportButtons();
+                
+                // Add keyboard shortcut help
+                this.addKeyboardHelp();
+            }
+
+            addExportButtons() {
+                const statsContainer = document.getElementById('statsContainer');
+                const exportContainer = document.createElement('div');
+                exportContainer.style.display = 'flex';
+                exportContainer.style.gap = '10px';
+                exportContainer.innerHTML = `
+                    <button class="page-btn" onclick="searchEngine.exportResults('json')" title="Export as JSON">
+                        📄 JSON
+                    </button>
+                    <button class="page-btn" onclick="searchEngine.exportResults('csv')" title="Export as CSV">
+                        📊 CSV
+                    </button>
+                `;
+                statsContainer.appendChild(exportContainer);
+            }
+
+            addKeyboardHelp() {
+                const helpButton = document.createElement('button');
+                helpButton.innerHTML = '⌨️ Shortcuts';
+                helpButton.className = 'page-btn';
+                helpButton.style.position = 'fixed';
+                helpButton.style.bottom = '20px';
+                helpButton.style.right = '20px';
+                helpButton.style.zIndex = '1000';
+                helpButton.onclick = () => {
+                    alert(`Keyboard Shortcuts:
+• Ctrl/Cmd + K: Focus search box
+• Ctrl/Cmd + Enter: Search
+• Alt + ←/→: Navigate pages
+• Enter: Search (when in search box)`);
+                };
+                document.body.appendChild(helpButton);
+            }
+        }
+
+        // Global functions
+        function searchRepositories() {
+            searchEngine.searchRepositories();
+        }
+
+        function toggleAdvancedFilters() {
+            const filters = document.getElementById('advancedFilters');
+            const button = document.querySelector('.advanced-toggle');
+            
+            if (filters.classList.contains('show')) {
+                filters.classList.remove('show');
+                button.textContent = '🔧 Advanced Filters';
+            } else {
+                filters.classList.add('show');
+                button.textContent = '🔧 Hide Advanced Filters';
+            }
+        }
+
+        // Initialize the search engine
+        const searchEngine = new GitHubSearchEngine();
+        
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            searchEngine.init();
+        });
+
+        // Performance monitoring
+        if ('performance' in window) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const perfData = performance.getEntriesByType('navigation')[0];
+                    console.log(`Page loaded in ${Math.round(perfData.loadEventEnd - perfData.fetchStart)}ms`);
+                }, 0);
+            });
+        }
+
+        // Service Worker for offline caching (optional)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Disabled for this demo, but could be implemented for offline functionality
+                // navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
+</body>
+</html>
