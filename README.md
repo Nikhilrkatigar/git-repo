@@ -264,7 +264,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- **Live Demo**: [https://your-demo-url.com](not demo)
+- **Live Demo**: (not avaliable)
 - **Documentation**: [https://your-docs-url.com](https://your-docs-url.com)
 - **API Reference**: [GitHub REST API](https://docs.github.com/en/rest)
 
@@ -272,7 +272,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**Built with ❤️ by [Your Name](https://github.com/yourusername)**
+**Built with ❤️ by Nikhilkatigar((https://github.com/Nikhilrkatigar/git-repo.git))**
 
 ⭐ **Star this repository if you find it helpful!** ⭐
 
