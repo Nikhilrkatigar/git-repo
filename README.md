@@ -264,7 +264,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- **Live Demo**: [https://your-demo-url.com](https://your-demo-url.com)
+- **Live Demo**: [https://your-demo-url.com](not demo)
 - **Documentation**: [https://your-docs-url.com](https://your-docs-url.com)
 - **API Reference**: [GitHub REST API](https://docs.github.com/en/rest)
 
