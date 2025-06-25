@@ -3,7 +3,6 @@
 A powerful, feature-rich web application for searching GitHub repositories with advanced filtering, sorting, and optimization capabilities. Built with pure JavaScript and modern web technologies.
 
 ![GitHub Advanced Search Engine](https://img.shields.io/badge/Version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)
 ![HTML5](https://img.shields.io/badge/HTML5-Semantic-orange.svg)
 ![CSS3](https://img.shields.io/badge/CSS3-Modern-blue.svg)
